@@ -8,6 +8,44 @@ from robot_lab.assets import ISAACLAB_ASSETS_DATA_DIR
 # Configuration
 ##
 
+
+#全肘式
+FERE_POS={
+            ".*L_hip_joint": 0.0,
+            ".*R_hip_joint": 0.0,
+            "F.*_thigh_joint": 0.6,
+            "R.*_thigh_joint": -0.6,
+            "F.*_calf_joint": -1.2,
+            "R.*_calf_joint": 1.2,
+        }
+#前肘后膝式
+FERK_POS={
+            ".*L_hip_joint": 0.0,
+            ".*R_hip_joint": 0.0,
+            "F.*_thigh_joint": 0.6,
+            "R.*_thigh_joint": -0.6,
+            "F.*_calf_joint": -1.2,
+            "R.*_calf_joint": 1.2,
+        }
+#前膝后肘式
+FKRE_POS={
+            ".*L_hip_joint": 0.0,
+            ".*R_hip_joint": 0.0,
+            "F.*_thigh_joint": 0.6,
+            "R.*_thigh_joint": -0.6,
+            "F.*_calf_joint": -1.2,
+            "R.*_calf_joint": 1.2,
+        }
+#全膝式
+FKRK_POS={
+            ".*L_hip_joint": 0.0,
+            ".*R_hip_joint": 0.0,
+            "F.*_thigh_joint": 0.6,
+            "R.*_thigh_joint": -0.6,
+            "F.*_calf_joint": -1.2,
+            "R.*_calf_joint": 1.2,
+        }
+
 FLIP_FERK_CFG = ArticulationCfg(
     spawn=sim_utils.UrdfFileCfg(
         fix_base=False,
@@ -33,14 +71,7 @@ FLIP_FERK_CFG = ArticulationCfg(
     ),
     init_state=ArticulationCfg.InitialStateCfg(
         pos=(0.0, 0.0, 0.34),
-        joint_pos={
-            ".*L_hip_joint": 0.0,
-            ".*R_hip_joint": 0.0,
-            "F.*_thigh_joint": 0.8,
-            "R.*_thigh_joint": -0.8,
-            "F.*_calf_joint": -1.5,
-            "R.*_calf_joint": 1.5,
-        },
+        joint_pos=FERK_POS,
         joint_vel={".*": 0.0},
     ),
     soft_joint_pos_limit_factor=0.9,
@@ -82,14 +113,7 @@ FLIP_FERE_CFG = ArticulationCfg(
     ),
     init_state=ArticulationCfg.InitialStateCfg(
         pos=(0.0, 0.0, 0.34),
-        joint_pos={
-            ".*L_hip_joint": 0.0,
-            ".*R_hip_joint": 0.0,
-            "F.*_thigh_joint": 0.6,
-            "R.*_thigh_joint": 0.7,
-            "F.*_calf_joint": -1.2,
-            "R.*_calf_joint": -1.2,
-        },
+        joint_pos=FERE_POS,
         joint_vel={".*": 0.0},
     ),
     soft_joint_pos_limit_factor=0.9,
@@ -131,14 +155,7 @@ FLIP_FKRK_CFG = ArticulationCfg(
     ),
     init_state=ArticulationCfg.InitialStateCfg(
         pos=(0.0, 0.0, 0.34),
-        joint_pos={
-            ".*L_hip_joint": 0.0,
-            ".*R_hip_joint": 0.0,
-            "F.*_thigh_joint": -1.0,
-            "R.*_thigh_joint": -0.8,
-            "F.*_calf_joint": 1.5,
-            "R.*_calf_joint": 1.5,
-        },
+        joint_pos=FKRK_POS,
         joint_vel={".*": 0.0},
     ),
     soft_joint_pos_limit_factor=0.9,
@@ -180,14 +197,7 @@ FLIP_FKRE_CFG = ArticulationCfg(
     ),
     init_state=ArticulationCfg.InitialStateCfg(
         pos=(0.0, 0.0, 0.34),
-        joint_pos={
-            ".*L_hip_joint": 0.0,
-            ".*R_hip_joint": 0.0,
-            "F.*_thigh_joint": -0.8,
-            "R.*_thigh_joint": 0.8,
-            "F.*_calf_joint": 1.5,
-            "R.*_calf_joint": -1.5,
-        },
+        joint_pos=FKRE_POS,
         joint_vel={".*": 0.0},
     ),
     soft_joint_pos_limit_factor=0.9,

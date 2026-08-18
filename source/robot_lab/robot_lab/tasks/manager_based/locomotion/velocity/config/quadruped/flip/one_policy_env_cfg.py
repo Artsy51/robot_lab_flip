@@ -629,6 +629,7 @@ class RewardsCfg:
             "stance_width": float,
         },
     )
+
     # feet_distance_xy_exp = RewTerm(
     #     func=mdp.feet_distance_xy_exp,
     #     weight=0.0,
@@ -692,7 +693,7 @@ class CurriculumCfg:
 
 
 @configclass
-class LocomotionVelocityRoughEnvCfg(ManagerBasedRLEnvCfg):
+class OnepolicyVelocityRoughEnvCfg(ManagerBasedRLEnvCfg):
     """Configuration for the locomotion velocity-tracking environment."""
 
     # Scene settings

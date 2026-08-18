@@ -34,7 +34,6 @@ def track_lin_vel_xy_exp(
     reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
     return reward
 
-
 def track_ang_vel_z_exp(
     env: ManagerBasedRLEnv, std: float, command_name: str, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")
 ) -> torch.Tensor:
@@ -683,5 +682,70 @@ def flat_orientation_l2(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = Scen
     # extract the used quantities (to enable type-hinting)
     asset: RigidObject = env.scene[asset_cfg.name]
     reward = torch.sum(torch.square(asset.data.projected_gravity_b[:, :2]), dim=1)
+    reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
+    return reward
+
+
+def raibert_heuristic(
+    env: ManagerBasedRLEnv,
+    command_name: str,
+    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+    stance_width: float = 0.3,
+    stance_length: float = 0.45,
+    cycle_time: float = 1.0,
+    gait_phase_offsets: tuple[float, float, float, float] = (0.0, 0.5, 0.5, 0.0),
+) -> torch.Tensor:
+    """Penalize foot placement error from a Raibert-style heuristic.
+
+    The foot body order is expected to be ``[FR, FL, RR, RL]``. For Flip configs,
+    pass the foot links with ``preserve_order=True`` to keep this convention.
+    """
+    asset: Articulation = env.scene[asset_cfg.name]
+    if len(asset_cfg.body_ids) != 4:
+        raise ValueError("raibert_heuristic expects exactly four foot bodies ordered as [FR, FL, RR, RL].")
+
+    cur_footsteps_translated = asset.data.body_link_pos_w[:, asset_cfg.body_ids, :] - asset.data.root_link_pos_w[
+        :, :
+    ].unsqueeze(1)
+    footsteps_in_body_frame = torch.zeros(env.num_envs, 4, 3, device=env.device)
+    for i in range(4):
+        footsteps_in_body_frame[:, i, :] = math_utils.quat_apply(
+            math_utils.quat_conjugate(asset.data.root_link_quat_w), cur_footsteps_translated[:, i, :]
+        )
+
+    stance_width_tensor = stance_width * torch.ones((env.num_envs, 1), device=env.device)
+    stance_length_tensor = stance_length * torch.ones((env.num_envs, 1), device=env.device)
+
+    # Nominal positions: [FR, FL, RR, RL]
+    desired_ys_nom = torch.cat(
+        [stance_width_tensor / 2, -stance_width_tensor / 2, stance_width_tensor / 2, -stance_width_tensor / 2],
+        dim=1,
+    )
+    desired_xs_nom = torch.cat(
+        [stance_length_tensor / 2, stance_length_tensor / 2, -stance_length_tensor / 2, -stance_length_tensor / 2],
+        dim=1,
+    )
+
+    command = env.command_manager.get_command(command_name)
+    phase = env.episode_length_buf[:, None] * env.step_dt / cycle_time
+    phase_offsets = torch.tensor(gait_phase_offsets, device=env.device).unsqueeze(0)
+    foot_indices = torch.remainder(phase + phase_offsets, 1.0)
+
+    phases = torch.abs(1.0 - foot_indices * 2.0) - 0.5
+    x_vel_des = command[:, 0:1]
+    yaw_vel_des = command[:, 2:3]
+    y_vel_des = yaw_vel_des * stance_length_tensor / 2
+    half_cycle_time = cycle_time / 2
+
+    desired_ys_offset = phases * y_vel_des * half_cycle_time
+    desired_ys_offset[:, 2:4] *= -1
+    desired_xs_offset = phases * x_vel_des * half_cycle_time
+
+    desired_ys_nom = desired_ys_nom + desired_ys_offset
+    desired_xs_nom = desired_xs_nom + desired_xs_offset
+    desired_footsteps_body_frame = torch.stack((desired_xs_nom, desired_ys_nom), dim=2)
+
+    err_raibert_heuristic = desired_footsteps_body_frame - footsteps_in_body_frame[:, :, 0:2]
+    reward = torch.sum(torch.square(err_raibert_heuristic), dim=(1, 2))
     reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
     return reward

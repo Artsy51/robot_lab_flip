@@ -159,6 +159,12 @@ class ObservationsCfg:
             clip=(-100.0, 100.0),
             scale=1.0,
         )
+        gait_phase= ObsTerm(
+            func=mdp.phase,
+            params={"cycle_time": 1.0},
+            clip=(-100.0, 100.0),
+            scale=1.0,
+        )
         joint_pos = ObsTerm(
             func=mdp.joint_pos_rel,
             params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*", preserve_order=True)},
@@ -189,6 +195,7 @@ class ObservationsCfg:
         def __post_init__(self):
             self.enable_corruption = True
             self.concatenate_terms = True
+            self.history_length=5
 
     @configclass
     class CriticCfg(ObsGroup):
@@ -200,6 +207,7 @@ class ObservationsCfg:
             clip=(-100.0, 100.0),
             scale=1.0,
         )
+
         base_ang_vel = ObsTerm(
             func=mdp.base_ang_vel,
             clip=(-100.0, 100.0),
@@ -213,6 +221,12 @@ class ObservationsCfg:
         velocity_commands = ObsTerm(
             func=mdp.generated_commands,
             params={"command_name": "base_velocity"},
+            clip=(-100.0, 100.0),
+            scale=1.0,
+        )
+        gait_phase= ObsTerm(
+            func=mdp.phase,
+            params={"cycle_time": 1.0},
             clip=(-100.0, 100.0),
             scale=1.0,
         )
@@ -239,15 +253,11 @@ class ObservationsCfg:
             clip=(-1.0, 1.0),
             scale=1.0,
         )
-        # joint_effort = ObsTerm(
-        #     func=mdp.joint_effort,
-        #     clip=(-100, 100),
-        #     scale=0.01,
-        # )
 
         def __post_init__(self):
             self.enable_corruption = False
             self.concatenate_terms = True
+            self.history_length=5
 
     # observation groups
     policy: PolicyCfg = PolicyCfg()
@@ -292,17 +302,6 @@ class EventCfg:
             "recompute_inertia": True,
         },
     )
-
-    # Skip: inertia updated via mass randomization by setting recompute_inertia=True
-    # randomize_rigid_body_inertia = EventTerm(
-    #     func=mdp.randomize_rigid_body_inertia,
-    #     mode="startup",
-    #     params={
-    #         "asset_cfg": SceneEntityCfg("robot", body_names=".*"),
-    #         "inertia_distribution_params": (0.5, 1.5),
-    #         "operation": "scale",
-    #     },
-    # )
 
     randomize_com_positions = EventTerm(
         func=mdp.randomize_rigid_body_com,
@@ -504,8 +503,6 @@ class RewardsCfg:
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*")},
     )
     action_rate_l2 = RewTerm(func=mdp.action_rate_l2, weight=0.0)
-    # smoothness_1 = RewTerm(func=mdp.smoothness_1, weight=0.0)  # Same as action_rate_l2
-    # smoothness_2 = RewTerm(func=mdp.smoothness_2, weight=0.0)  # Unvaliable now
 
     # Contact sensor
     undesired_contacts = RewTerm(
@@ -629,18 +626,45 @@ class RewardsCfg:
             "stance_width": float,
         },
     )
-    # feet_distance_xy_exp = RewTerm(
-    #     func=mdp.feet_distance_xy_exp,
-    #     weight=0.0,
-    #     params={
-    #         "std": math.sqrt(0.25),
-    #         "asset_cfg": SceneEntityCfg("robot", body_names=""),
-    #         "stance_length": float,
-    #         "stance_width": float,
-    #     },
-    # )
 
     upward = RewTerm(func=mdp.upward, weight=0.0)
+
+    raibert_heuristic = RewTerm(
+        func=mdp.raibert_heuristic,
+        weight=-10.0,
+        params={
+            "command_name": "base_velocity",
+            "asset_cfg": SceneEntityCfg("robot", body_names=""),
+            "stance_width": 0.39,
+            "stance_length": 0.52,
+            "cycle_time": 1.0,
+            "gait_phase_offsets": (0.0, 0.5, 0.5, 0.0),
+        },
+    )
+
+    hip_pos_penalty = RewTerm(
+        func=mdp.joint_deviation_l1,
+        weight=0.0,
+        params={
+            "asset_cfg": SceneEntityCfg("robot", body_names=""),
+        },
+    )
+
+    thigh_pos_penalty = RewTerm(
+        func=mdp.joint_deviation_l1,
+        weight=0.0,
+        params={
+            "asset_cfg": SceneEntityCfg("robot", body_names=""),
+        },
+    )
+    
+    calf_pos_penalty = RewTerm(
+        func=mdp.joint_deviation_l1,
+        weight=0.0,
+        params={
+            "asset_cfg": SceneEntityCfg("robot", body_names=""),
+        },
+    )
 
 
 @configclass
@@ -692,7 +716,7 @@ class CurriculumCfg:
 
 
 @configclass
-class LocomotionVelocityRoughEnvCfg(ManagerBasedRLEnvCfg):
+class flipVelocityRoughEnvCfg(ManagerBasedRLEnvCfg):
     """Configuration for the locomotion velocity-tracking environment."""
 
     # Scene settings

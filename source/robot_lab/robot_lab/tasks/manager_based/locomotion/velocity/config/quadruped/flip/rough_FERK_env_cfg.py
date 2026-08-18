@@ -4,13 +4,13 @@
 from isaaclab.utils import configclass
 
 from robot_lab.assets.flip import FLIP_FERK_CFG
-from robot_lab.tasks.manager_based.locomotion.velocity.velocity_env_cfg import LocomotionVelocityRoughEnvCfg
-
+from.flip_env_cfg import flipVelocityRoughEnvCfg
 
 @configclass
-class FlipFERKRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
+class FlipFERKRoughEnvCfg(flipVelocityRoughEnvCfg):
     base_link_name = "base"
     foot_link_name = ".*_foot_link"
+    foot_names = ["FR_foot_link", "FL_foot_link", "RR_foot_link", "RL_foot_link"]
     # fmt: off
     joint_names = [
         "FR_hip_joint", "FR_thigh_joint", "FR_calf_joint",
@@ -19,6 +19,9 @@ class FlipFERKRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         "RL_hip_joint", "RL_thigh_joint", "RL_calf_joint",
     ]
     # fmt: on
+    hip_joint_names="._*hip_joint"
+    thigh_joint_names="._*thigh_joint"
+    calf_joint_names="._*calf_joint"
 
     def __post_init__(self):
         super().__post_init__()
@@ -123,6 +126,13 @@ class FlipFERKRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
             ("FL_foot_link", "RR_foot_link"),
             ("FR_foot_link", "RL_foot_link"),
         )
+        self.rewards.raibert_heuristic.weight = -10.0
+        self.rewards.raibert_heuristic.params["asset_cfg"].body_names = self.foot_names
+        self.rewards.raibert_heuristic.params["asset_cfg"].preserve_order = True
+        self.rewards.raibert_heuristic.params["stance_width"] = 0.39
+        self.rewards.raibert_heuristic.params["stance_length"] = 0.52
+        self.rewards.raibert_heuristic.params["cycle_time"] = 1.0
+        self.rewards.raibert_heuristic.params["gait_phase_offsets"] = (0.0, 0.5, 0.5, 0.0)
         self.rewards.upward.weight = 1.0
 
         self.terminations.illegal_contact = None
