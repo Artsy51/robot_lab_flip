@@ -86,8 +86,14 @@ class FlipFKRKRoughEnvCfg(flipVelocityRoughEnvCfg):
         self.rewards.joint_vel_limits.weight = 0
         self.rewards.joint_power.weight = -2e-5
         self.rewards.stand_still.weight = -2.0
-        self.rewards.joint_pos_penalty.weight = -1.0
-        self.rewards.joint_mirror.weight = -0.05
+        self.rewards.joint_pos_penalty.weight = 0.0
+        self.rewards.hip_pos_penalty.weight = -2.0
+        self.rewards.hip_pos_penalty.params["asset_cfg"].joint_names = self.hip_joint_names
+        self.rewards.thigh_pos_penalty.weight = -1.0
+        self.rewards.thigh_pos_penalty.params["asset_cfg"].joint_names = self.thigh_joint_names
+        self.rewards.calf_pos_penalty.weight = -1.0
+        self.rewards.calf_pos_penalty.params["asset_cfg"].joint_names = self.calf_joint_names
+        self.rewards.joint_mirror.weight = 0.00
         self.rewards.joint_mirror.params["mirror_joints"] = [
             ["FR_(hip|thigh|calf).*", "RL_(hip|thigh|calf).*"],
             ["FL_(hip|thigh|calf).*", "RR_(hip|thigh|calf).*"],
@@ -100,7 +106,7 @@ class FlipFKRKRoughEnvCfg(flipVelocityRoughEnvCfg):
         self.rewards.contact_forces.params["sensor_cfg"].body_names = [self.foot_link_name]
         self.rewards.track_lin_vel_xy_exp.weight = 3.0
         self.rewards.track_ang_vel_z_exp.weight = 2.0
-        self.rewards.feet_air_time.weight = 0.1
+        self.rewards.feet_air_time.weight = 0.2
         self.rewards.feet_air_time.params["threshold"] = 0.5
         self.rewards.feet_air_time.params["sensor_cfg"].body_names = [self.foot_link_name]
         self.rewards.feet_air_time_variance.weight = -1.0
@@ -114,8 +120,8 @@ class FlipFKRKRoughEnvCfg(flipVelocityRoughEnvCfg):
         self.rewards.feet_slide.weight = -0.1
         self.rewards.feet_slide.params["sensor_cfg"].body_names = [self.foot_link_name]
         self.rewards.feet_slide.params["asset_cfg"].body_names = [self.foot_link_name]
-        self.rewards.feet_height.weight = 0
-        self.rewards.feet_height.params["target_height"] = 0.05
+        self.rewards.feet_height.weight = -0.5
+        self.rewards.feet_height.params["target_height"] = 0.08
         self.rewards.feet_height.params["asset_cfg"].body_names = [self.foot_link_name]
         self.rewards.feet_height_body.weight = -5.0
         self.rewards.feet_height_body.params["target_height"] = -0.2

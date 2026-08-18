@@ -630,17 +630,6 @@ class RewardsCfg:
         },
     )
 
-    # feet_distance_xy_exp = RewTerm(
-    #     func=mdp.feet_distance_xy_exp,
-    #     weight=0.0,
-    #     params={
-    #         "std": math.sqrt(0.25),
-    #         "asset_cfg": SceneEntityCfg("robot", body_names=""),
-    #         "stance_length": float,
-    #         "stance_width": float,
-    #     },
-    # )
-
     upward = RewTerm(func=mdp.upward, weight=0.0)
 
 

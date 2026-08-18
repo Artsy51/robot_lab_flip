@@ -159,12 +159,12 @@ class ObservationsCfg:
             clip=(-100.0, 100.0),
             scale=1.0,
         )
-        gait_phase= ObsTerm(
-            func=mdp.phase,
-            params={"cycle_time": 1.0},
-            clip=(-100.0, 100.0),
-            scale=1.0,
-        )
+        # gait_phase= ObsTerm(
+        #     func=mdp.phase,
+        #     params={"cycle_time": 1.0},
+        #     clip=(-100.0, 100.0),
+        #     scale=1.0,
+        # )
         joint_pos = ObsTerm(
             func=mdp.joint_pos_rel,
             params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*", preserve_order=True)},
@@ -224,12 +224,12 @@ class ObservationsCfg:
             clip=(-100.0, 100.0),
             scale=1.0,
         )
-        gait_phase= ObsTerm(
-            func=mdp.phase,
-            params={"cycle_time": 1.0},
-            clip=(-100.0, 100.0),
-            scale=1.0,
-        )
+        # gait_phase= ObsTerm(
+        #     func=mdp.phase,
+        #     params={"cycle_time": 1.0},
+        #     clip=(-100.0, 100.0),
+        #     scale=1.0,
+        # )
         joint_pos = ObsTerm(
             func=mdp.joint_pos_rel,
             params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*", preserve_order=True)},

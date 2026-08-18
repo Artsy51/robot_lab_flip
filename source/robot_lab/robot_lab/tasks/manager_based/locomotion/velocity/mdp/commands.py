@@ -126,8 +126,8 @@ class DiscreteCommandController(CommandTerm):
         self.available_commands = self.cfg.available_commands
 
         # Create buffers to store the command
-        # -- command buffer: stores discrete action indices for each environment
-        self.command_buffer = torch.zeros(self.num_envs, dtype=torch.int32, device=self.device)
+        # -- command buffer: stores discrete action indices for each environment, shape (num_envs, 1)
+        self.command_buffer = torch.zeros(self.num_envs, 1, dtype=torch.int32, device=self.device)
 
         # -- current_commands: stores a snapshot of the current commands (as integers)
         self.current_commands = [self.available_commands[0]] * self.num_envs  # Default to the first command
@@ -165,11 +165,11 @@ class DiscreteCommandController(CommandTerm):
         sampled_commands = torch.tensor(
             [self.available_commands[idx.item()] for idx in sampled_indices], dtype=torch.int32, device=self.device
         )
-        self.command_buffer[env_ids] = sampled_commands
+        self.command_buffer[env_ids] = sampled_commands.unsqueeze(1)
 
     def _update_command(self):
         """Update and store the current commands."""
-        self.current_commands = self.command_buffer.tolist()
+        self.current_commands = self.command_buffer.squeeze(1).tolist()
 
 
 @configclass
