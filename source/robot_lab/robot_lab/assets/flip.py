@@ -8,6 +8,15 @@ from robot_lab.assets import ISAACLAB_ASSETS_DATA_DIR
 # Configuration
 ##
 
+#one_policy
+FLIP_Onepolicy_POS={
+            ".*L_hip_joint": 0.0,
+            ".*R_hip_joint": 0.0,
+            "F.*_thigh_joint": 0.0,
+            "R.*_thigh_joint": 0.0,
+            "F.*_calf_joint": 0.0,
+            "R.*_calf_joint": 0.0,
+        }
 
 #全肘式
 FERE_POS={
@@ -198,6 +207,49 @@ FLIP_FKRE_CFG = ArticulationCfg(
     init_state=ArticulationCfg.InitialStateCfg(
         pos=(0.0, 0.0, 0.34),
         joint_pos=FKRE_POS,
+        joint_vel={".*": 0.0},
+    ),
+    soft_joint_pos_limit_factor=0.9,
+    actuators={
+        "legs": DCMotorCfg(
+            joint_names_expr=[".*_joint"],
+            effort_limit=30.0,
+            saturation_effort=30.0,
+            velocity_limit=16.0,
+            stiffness=20.0,
+            damping=0.5,
+            friction=0.0,
+        ),
+    },
+)
+
+
+FLIP_Onepolicy_CFG = ArticulationCfg(
+    spawn=sim_utils.UrdfFileCfg(
+        fix_base=False,
+        merge_fixed_joints=True,
+        replace_cylinders_with_capsules=False,
+        asset_path=f"{ISAACLAB_ASSETS_DATA_DIR}/Robots/flip/flip_description/urdf/flip.urdf",
+        activate_contact_sensors=True,
+        rigid_props=sim_utils.RigidBodyPropertiesCfg(
+            disable_gravity=False,
+            retain_accelerations=False,
+            linear_damping=0.0,
+            angular_damping=0.0,
+            max_linear_velocity=1000.0,
+            max_angular_velocity=1000.0,
+            max_depenetration_velocity=1.0,
+        ),
+        articulation_props=sim_utils.ArticulationRootPropertiesCfg(
+            enabled_self_collisions=False, solver_position_iteration_count=4, solver_velocity_iteration_count=0
+        ),
+        joint_drive=sim_utils.UrdfConverterCfg.JointDriveCfg(
+            gains=sim_utils.UrdfConverterCfg.JointDriveCfg.PDGainsCfg(stiffness=0, damping=0)
+        ),
+    ),
+    init_state=ArticulationCfg.InitialStateCfg(
+        pos=(0.0, 0.0, 0.34),
+        joint_pos=FLIP_Onepolicy_POS,
         joint_vel={".*": 0.0},
     ),
     soft_joint_pos_limit_factor=0.9,
